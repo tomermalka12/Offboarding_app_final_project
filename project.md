@@ -1,17 +1,3 @@
-
-IGNORE--------------------------
-General Idea:
-build an Gui app tool that will automate the workflow of an employee offboarding.
-
-what have to be:
-1. Gui that will show the admin whos terminating the employee a window of "Next , Next ..." - via python flask
-2. Docker that will contain all the app so it can run anywhere, on any pc
-3. CI/CD that will ensure all the processes
-4. git for version managemt 
-5. git-hub to push and pull the changes
-6. kubernetes to make sure the app is always availbe 
-IGNORE--------------------------
-
 # Employee Offboarding Automation Tool
 
 ## Tech Stack
