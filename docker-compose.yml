@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  offboard:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./offboarding_app/scripts:/opt/app/offboarding_app/scripts:ro
+      - ./logs:/var/log
