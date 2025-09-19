@@ -30,7 +30,7 @@ IGNORE--------------------------
 ## Workflow
 
 1. **Admin Accesses Web App**  
-   - Admin opens the browser and navigates to the offboarding app via Nginx.
+   - Admin opens the browser and navigates to the offboarding app via Nginx / Traefik ingress.
 
 2. **Multi-step GUI Wizard**  
    - Admin enters the employee **username**.  
