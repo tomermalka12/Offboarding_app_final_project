@@ -9,87 +9,114 @@ what have to be:
 5. git-hub to push and pull the changes
 6. kubernetes to make sure the app is always availbe 
 
-
 Tech Stack
+# Python Flask → Web framework providing a polished multi-step GUI for admins to trigger offboarding by username.
 
-Python Flask → Provides a simple GUI (“Next → Next → Finish”) for admins to trigger the offboarding workflow.
+# Bash Script → Executes employee offboarding tasks (data deletion, access revocation, cleanup).
 
-Bash Script → Executes the actual employee offboarding steps (user data deletion, access revocation, etc.).
+# Gunicorn → Production-grade WSGI server to run Flask efficiently, handling multiple concurrent requests.
 
-Docker → Packages the Flask app + script into a portable container image.
+# Nginx / Traefik → Reverse proxy to forward external HTTP/HTTPS requests to Gunicorn, optionally handling TLS, caching, and static files.
 
-Git + GitHub → Source code version control and collaboration.
+# Docker → Containerizes the Flask + Gunicorn app for portability and consistency.
 
-GitHub Actions (CI/CD) → Builds, tests, and pushes the Docker image automatically on code changes, then deploys updates to the cluster.
+# k3s (Lightweight Kubernetes) → Runs the containerized app, ensuring high availability, scalability, and easy orchestration.
 
-k3s (Lightweight Kubernetes) → Runs the containerized app, ensures availability, and manages scaling and networking.
+# Helm → Packages and manages Kubernetes manifests, enabling smooth deployment, upgrades, and rollback.
 
-Helm → Packages and manages Kubernetes manifests, enabling simple upgrades, rollbacks, and configuration management.
+# Git + GitHub → Version control and collaboration for source code.
 
-Prometheus & Grafana → Monitoring and observability stack: Prometheus collects app and cluster metrics, Grafana visualizes them in dashboards for admins.
+# GitHub Actions (CI/CD) → Automates testing, Docker image build, push, and deployment to k3s.
+
+# Prometheus & Grafana → Observability stack: Prometheus scrapes metrics from the app and cluster, Grafana visualizes dashboards for admins.
+
+# Bootstrap + Custom CSS/JS → Modern, responsive UI with form validation, wizard steps, and confirmation popups.
 
 Workflow
 
-Admin Accesses GUI → The admin opens the Flask-based web app and enters the employee ID for termination.
+# Admin Accesses Web App
+Admin opens the browser and navigates to the offboarding web app (via Nginx / Traefik ingress).
 
-Confirmation Wizard → The GUI guides the admin through a short wizard (“Next” → “Confirm” → “Execute”).
+# Multi-step GUI Wizard
+Admin enters the employee username.
+Wizard guides through steps: Next → Confirm → Execute.
+JS confirmation ensures accidental offboarding is prevented.
 
-Script Execution → On confirmation, Flask securely invokes the offboarding Bash script (supports dry-run for safety).
+# Script Execution
+Flask app passes the username to the Bash offboarding script.
+Script handles deletion of user data, access revocation, and other cleanup tasks.
 
-Audit Logging → The tool records the action (employee ID, timestamp, result) for tracking.
+# Audit Logging
+Actions are logged (username, timestamp, outcome) for tracking and compliance.
 
-Containerized Deployment → The app runs inside Docker and is deployed on a k3s cluster for portability and resilience.
+# Containerized Deployment
+Flask + Gunicorn app runs in a Docker container, ensuring portability.
 
-Helm Deployment → The application is packaged as a Helm chart, making it easy to install, configure, and upgrade inside the k3s cluster.
+# Kubernetes Orchestration (k3s)
+Helm chart deploys the container into k3s cluster.
+Deployment ensures availability and scaling.
+Ingress routes external requests to the app.
 
-CI/CD Pipeline → GitHub Actions automatically builds and pushes updated images to the registry and redeploys the Helm release on code changes.
+# CI/CD Automation
+GitHub Actions automatically:
+Tests the code
+Builds Docker image
+Pushes image to registry
+Deploys Helm release to k3s on code changes
 
-Monitoring & Observability →
+# Monitoring & Observability
+Prometheus scrapes metrics (app uptime, request counts, errors).
+Grafana dashboards visualize metrics for admins.
 
-Prometheus scrapes metrics from the application and cluster.
-
-Grafana provides dashboards for admins to track system health, offboarding execution results, and failures.
-
-
+Project Stracture
 offboard-gui/
-├─ app/
-│  ├─ main.py             # Flask app (wizard + script runner)
-│  ├─ requirements.txt
+├─ app/                             # Flask application
+│  ├─ main.py                       # Flask app (wizard + script runner)
+│  ├─ requirements.txt              # Python dependencies (Flask, etc.)
 │  ├─ templates/
-│  │   └─ wizard.html
+│  │   └─ wizard.html               # Modern Bootstrap multi-step/confirmation form
 │  ├─ static/
+│  │   ├─ css/
+│  │   │   └─ style.css             # Custom CSS for UI
+│  │   └─ js/
+│  │       └─ script.js             # JS for confirmations / wizard steps
 │  └─ scripts/
-│      └─ offboard.sh
+│      └─ offboard.sh                # Bash script to offboard employees by username
 │
-├─ charts/                # Helm chart for deployment
+├─ charts/                           # Helm chart for deployment
 │  └─ offboard-gui/
 │      ├─ Chart.yaml
 │      ├─ values.yaml
 │      ├─ templates/
-│      │   ├─ deployment.yaml
-│      │   ├─ service.yaml
-│      │   ├─ ingress.yaml
-│      │   ├─ configmap.yaml
+│      │   ├─ deployment.yaml        # Deployment for Gunicorn app
+│      │   ├─ service.yaml           # ClusterIP / LoadBalancer
+│      │   ├─ ingress.yaml           # Traefik / Nginx ingress for external access
+│      │   ├─ configmap.yaml         # Optional for config or static files
 │      │   └─ _helpers.tpl
 │
-├─ k3s/                   # k3s setup & cluster configs
-│  ├─ install.sh          # script to install k3s locally or on VM
-│  ├─ README.md           # how to set up k3s cluster
-│  ├─ kubeconfig          # (example, not real one; in practice provided by k3s)
-│  └─ metallb-values.yaml # optional if you add LoadBalancer (via Helm)
+├─ k3s/                              # k3s cluster setup / configs
+│  ├─ install.sh                     # Script to install k3s on VM / local
+│  ├─ README.md                      # Instructions for cluster setup
+│  ├─ kubeconfig                     # Example kubeconfig (do not commit real credentials)
+│  └─ metallb-values.yaml            # Optional: LoadBalancer for services
 │
-├─ monitoring/
-│  ├─ prometheus-values.yaml
-│  ├─ grafana-values.yaml
+├─ monitoring/                        # Observability stack
+│  ├─ prometheus-values.yaml         # Custom values for Prometheus Helm chart
+│  ├─ grafana-values.yaml            # Custom values for Grafana Helm chart
 │  └─ dashboards/
-│      └─ offboarding.json
+│      └─ offboarding.json           # Prebuilt Grafana dashboard JSON
+│
+├─ nginx/                             # Optional Nginx reverse proxy (if not using Traefik)
+│  └─ default.conf                    # Reverse proxy config to forward to Gunicorn
 │
 ├─ .github/
 │  └─ workflows/
-│      └─ ci-cd.yml
+│      └─ ci-cd.yml                  # GitHub Actions pipeline for CI/CD
 │
-├─ Dockerfile
-├─ docker-compose.yml
-├─ project.md
-├─ README.md
+├─ Dockerfile                         # Build Flask app + Gunicorn container
+├─ docker-compose.yml                  # Optional: local testing with Nginx + Flask
+├─ project.md                          # Tech stack + workflow documentation
+├─ README.md                           # Instructions to run, deploy, and monitor
 └─ LICENSE
+
+
