@@ -4,7 +4,7 @@
 #Developed by: Tomer Malka Pinto
 #Purpose: Automate offboarding workflow - user directories deletion from multiple project paths
 #date: 19/09/2025
-#version: 0.0.1
+#version: 0.1.1
 set -o errexit
 set -o pipefail
 ###### End Safe Header ########
@@ -38,10 +38,19 @@ for base in "${base_paths[@]}"; do
         echo "Searching in $base ..."
 
         # Find all directories matching the username (recursive)
-        matches=$(find "$base" \
-            -path '*/.*' -prune -o \
-            -type d -name "$USER" -prune -print 2>/dev/null)
+        function find_user_dirs {
+            find "$1" -path '*/.*' -prune -o -type d -name "$USER" -print 2>/dev/null
+        }
+        function show_matches {
+            if [ -n "$matches" ]; then
+                echo "Matches found in $base:"
+                echo "$matches"
+            fi
+        }
+        matches=$(find_user_dirs "$base")
+        show_matches
 
+        function delete_dirs{
         if [ -n "$matches" ]; then
            while IFS= read -r dir; do
               if [ "$(basename "$dir")" = "$USER" ]; then
@@ -61,8 +70,10 @@ for base in "${base_paths[@]}"; do
     else
         echo "Path not found: $base"
     fi
+    }
+    delete_dirs
+    echo "----------------------------------"
 done
-
 echo "=================================="
 echo "Total deleted for user '$USER': $deleted_count"
 echo "=================================="
