@@ -9,7 +9,7 @@ set -o errexit
 set -o pipefail
 ###### End Safe Header ########
 
-read -p "Enter username:" USER
+read -r -p "Enter username:" USER
 
 if [ -z "$USER" ]; then
     echo "No username entered. Exiting."
@@ -45,8 +45,8 @@ for base in "${base_paths[@]}"; do
 
         if [ -n "$matches" ]; then
            while IFS= read -r dir; do
-              if [ "$(basename "$dir")" = "$username" ]; then
-                read -p "Delete $dir ? [y/N]: " confirm
+              if [ "$(basename "$dir")" = "$USER" ]; then
+                read -r -p "Delete $dir ? [y/N]: " confirm
                 if [[ "$confirm" =~ ^[Yy]$ ]]; then
                     rm -rf "$dir"
                     echo "Deleted: $dir"
