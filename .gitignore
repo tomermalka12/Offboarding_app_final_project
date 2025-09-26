@@ -1,0 +1,6 @@
+#virtual env ignore
+venv/
+__pycache__/
+
+#git ignore
+.git/
