@@ -6,6 +6,24 @@ on:
       - main
 
 jobs:
+  lint_for_bash:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: install ShellCheck
+        run: sudo apt-get install -y shellcheck
+          
+      - name: Run ShellCheck
+        run: shellcheck scripts/initial_script01.sh
+
+      - name: Install shfmt
+        run: sudo apt-get install -y shfmt
+
+      - name: Run shfmt (check formatting)
+        run: shfmt -d scripts/initial_script01.sh
+
   build_and_test_application:
     runs-on: ubuntu-latest
     steps:
