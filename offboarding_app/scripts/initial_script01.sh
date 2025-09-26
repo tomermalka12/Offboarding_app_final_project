@@ -38,7 +38,6 @@ for base in "${base_paths[@]}"; do
         echo "Searching in $base ..."
 
         # Find all directories matching the username (recursive)
-#matches=$(find "$base" -path '*/.*' -prune -o -type d -name "$username" 2>/dev/null)
         matches=$(find "$base" \
             -path '*/.*' -prune -o \
             -type d -name "$USER" -prune -print 2>/dev/null)
