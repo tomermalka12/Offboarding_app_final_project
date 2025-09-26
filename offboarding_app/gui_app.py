@@ -18,7 +18,7 @@ def offboard():
     try:
         # Call the bash script with the username
         result = subprocess.run(
-            ["bash", "scripts/offboard.sh", username],
+            ["bash", "scripts/initial_script01.sh", username],
             capture_output=True,
             text=True,
             check=True
