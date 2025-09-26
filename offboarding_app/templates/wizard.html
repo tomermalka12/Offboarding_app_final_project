@@ -1,14 +1,272 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Employee Offboarding</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pliops Offboarding Wizard</title>
+  <style>
+    /* --- General Styles --- */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .wizard-container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 520px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* --- Header --- */
+    .wizard-header {
+      background: linear-gradient(135deg, #4a90e2, #50e3c2);
+      color: white;
+      text-align: center;
+      padding: 25px 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .wizard-header span {
+      color: #fff;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* --- Steps --- */
+    .step {
+      display: none;
+      padding: 30px 25px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .step.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0 20px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    /* --- Buttons --- */
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .next-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .prev-btn {
+      background-color: #ccc;
+    }
+    .submit-btn {
+      background-color: #2196F3;
+      color: white;
+      width: 100%;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+
+    /* --- Step indicators --- */
+    .step-indicators {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+      padding-top: 10px;
+    }
+    .step-indicators span {
+      width: 12px;
+      height: 12px;
+      background: #ccc;
+      border-radius: 50%;
+      margin: 0 6px;
+      display: inline-block;
+      transition: background 0.3s;
+    }
+    .step-indicators span.active {
+      background: #4CAF50;
+    }
+
+    /* --- Success / Error Messages --- */
+    .message {
+      display: none;
+      padding: 15px;
+      margin: 10px 25px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 15px;
+    }
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* --- Loading spinner --- */
+    .spinner {
+      display: none;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #2196F3;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+  </style>
 </head>
 <body>
-    <h1>Offboard Employee</h1>
-    <form method="POST" action="/offboard">
-        <label for="username">Enter Employee Username:</label>
-        <input type="text" id="username" name="username" required>
-        <button type="submit">Offboard</button>
+  <div class="wizard-container">
+    <div class="wizard-header">Pliops Offboarding Wizard</div>
+
+    <div class="step-indicators">
+      <span class="active"></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="message success" id="successMessage"></div>
+    <div class="message error" id="errorMessage"></div>
+    <div class="spinner" id="spinner"></div>
+
+    <form id="wizardForm" method="POST" action="/offboard">
+      <!-- Step 1 -->
+      <div class="step active">
+        <label for="username">Employee Username:</label>
+        <input type="text" id="username" name="username" placeholder="Enter username" required>
+        <div class="buttons">
+          <button type="button" class="next-btn" onclick="nextStep()">Next</button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step">
+        <p>Confirm the offboarding of <strong id="confirmUsername"></strong></p>
+        <div class="buttons">
+          <button type="button" class="prev-btn" onclick="prevStep()">Back</button>
+          <button type="button" class="next-btn" onclick="nextStep()">Next</button>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step">
+        <p>Ready to offboard employee <strong id="finalUsername"></strong>?</p>
+        <div class="buttons">
+          <button type="button" class="prev-btn" onclick="prevStep()">Back</button>
+          <button type="button" class="submit-btn" onclick="submitForm()">Offboard</button>
+        </div>
+      </div>
     </form>
+  </div>
+
+  <script>
+    let currentStep = 0;
+    const steps = document.querySelectorAll(".step");
+    const indicators = document.querySelectorAll(".step-indicators span");
+    const successMessage = document.getElementById("successMessage");
+    const errorMessage = document.getElementById("errorMessage");
+    const spinner = document.getElementById("spinner");
+
+    function showStep(n) {
+      steps.forEach((step, i) => {
+        step.classList.toggle("active", i === n);
+        indicators[i].classList.toggle("active", i <= n);
+      });
+      if (n === 1) {
+        document.getElementById("confirmUsername").textContent = document.getElementById("username").value;
+      }
+      if (n === 2) {
+        document.getElementById("finalUsername").textContent = document.getElementById("username").value;
+      }
+      successMessage.style.display = 'none';
+      errorMessage.style.display = 'none';
+    }
+
+    function nextStep() {
+      if (currentStep === 0 && !document.getElementById("username").value.trim()) {
+        alert("Please enter a username");
+        return;
+      }
+      currentStep = Math.min(currentStep + 1, steps.length - 1);
+      showStep(currentStep);
+    }
+
+    function prevStep() {
+      currentStep = Math.max(currentStep - 1, 0);
+      showStep(currentStep);
+    }
+
+    function submitForm() {
+      const username = document.getElementById("username").value.trim();
+      if (!username) return;
+
+      spinner.style.display = 'block';
+      successMessage.style.display = 'none';
+      errorMessage.style.display = 'none';
+
+      fetch('/offboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ username })
+      })
+      .then(response => response.text().then(text => ({ status: response.status, text })))
+      .then(data => {
+        spinner.style.display = 'none';
+        if (data.status === 200) {
+          successMessage.textContent = `✅ ${username} successfully offboarded!`;
+          successMessage.style.display = 'block';
+        } else {
+          errorMessage.innerHTML = `❌ Error: <pre>${data.text}</pre>`;
+          errorMessage.style.display = 'block';
+        }
+      })
+      .catch(err => {
+        spinner.style.display = 'none';
+        errorMessage.textContent = `❌ Unexpected error: ${err}`;
+        errorMessage.style.display = 'block';
+      });
+    }
+  </script>
 </body>
 </html>
