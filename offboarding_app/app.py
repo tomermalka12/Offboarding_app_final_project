@@ -2,7 +2,7 @@
 from flask import Flask, render_template, request
 import subprocess
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 
 @app.route("/", methods=["GET"])
 def index():
@@ -28,5 +28,5 @@ def offboard():
         return f"<h3>Error while offboarding {username}</h3><pre>{e.stderr}</pre>", 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8081, debug=True)
 
