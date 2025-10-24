@@ -3,43 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/pliops-hex-logo.png') }}">
   <title>Pliops Offboarding Wizard</title>
   <style>
     /* --- General Styles --- */
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #4b0082, #6a0dad, #8e2de2);
+      background: radial-gradient(circle at top left, #1b001f 10%, #4b0082 50%, #000000 120%);
       margin: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      color: #fff;
+      color: #eee;
     }
 
     .wizard-container {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
+      background: linear-gradient(160deg, rgba(15, 0, 30, 0.9), rgba(70, 0, 90, 0.85));
       border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.7);
       width: 100%;
       max-width: 520px;
       overflow: hidden;
       position: relative;
+      border: 1px solid rgba(180, 100, 255, 0.25);
       color: #fff;
-      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(12px);
     }
 
     /* --- Header --- */
     .wizard-header {
-      background: linear-gradient(135deg, #7b2cbf, #9d4edd);
+      background: linear-gradient(90deg, #000000, #3c096c, #7b2cbf);
       color: #fff;
       text-align: center;
       padding: 25px 20px;
       font-size: 24px;
       font-weight: bold;
-      letter-spacing: 0.5px;
-      border-bottom: 2px solid rgba(255,255,255,0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      letter-spacing: 0.6px;
+      text-shadow: 0 0 10px rgba(180, 100, 255, 0.8);
+    }
+
+    .pliops-logo {
+      width: 85px;
+      display: block;
+      margin: 5px auto 10px;
+      filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
     }
 
     h2 {
@@ -57,6 +66,7 @@
     .step.active {
       display: block;
     }
+
     @keyframes fadeIn {
       from {opacity: 0; transform: translateY(10px);}
       to {opacity: 1; transform: translateY(0);}
@@ -65,7 +75,7 @@
     label {
       font-weight: 500;
       font-size: 15px;
-      color: #e0d4ff;
+      color: #d8b4ff;
     }
 
     input[type="text"] {
@@ -75,17 +85,20 @@
       border: 1px solid #a370f7;
       border-radius: 6px;
       font-size: 16px;
-      box-sizing: border-box;
-      background-color: rgba(255,255,255,0.15);
+      background-color: rgba(20,20,20,0.8);
       color: #fff;
       outline: none;
+      transition: all 0.3s ease;
     }
+
     input[type="text"]::placeholder {
-      color: #d0bfff;
+      color: #bca6e5;
     }
+
     input[type="text"]:focus {
       border-color: #c77dff;
-      box-shadow: 0 0 6px #b185ff;
+      box-shadow: 0 0 10px #9d4edd;
+      background-color: rgba(40, 0, 60, 0.8);
     }
 
     /* --- Buttons --- */
@@ -94,6 +107,7 @@
       justify-content: space-between;
       margin-top: 10px;
     }
+
     button {
       padding: 12px 20px;
       border: none;
@@ -102,23 +116,29 @@
       cursor: pointer;
       transition: all 0.3s ease;
       font-weight: 600;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
     }
+
     .next-btn {
-      background-color: #9d4edd;
-      color: white;
-    }
-    .prev-btn {
-      background-color: rgba(255,255,255,0.3);
+      background: linear-gradient(135deg, #7b2cbf, #9d4edd);
       color: #fff;
     }
-    .submit-btn {
-      background-color: #7b2cbf;
-      color: white;
-      width: 100%;
+
+    .prev-btn {
+      background: rgba(30,30,30,0.6);
+      color: #ccc;
     }
+
+    .submit-btn {
+      background: linear-gradient(135deg, #3a0ca3, #000000);
+      color: #fff;
+      width: 100%;
+      border: 1px solid #9d4edd;
+    }
+
     button:hover {
-      opacity: 0.9;
-      transform: scale(1.02);
+      transform: scale(1.03);
+      box-shadow: 0 0 10px rgba(180,100,255,0.7);
     }
 
     /* --- Step indicators --- */
@@ -131,14 +151,16 @@
     .step-indicators span {
       width: 12px;
       height: 12px;
-      background: #cdb4db;
+      background: #5a189a;
       border-radius: 50%;
       margin: 0 6px;
       display: inline-block;
-      transition: background 0.3s;
+      transition: all 0.3s;
+      box-shadow: 0 0 4px #000;
     }
     .step-indicators span.active {
       background: #b5179e;
+      box-shadow: 0 0 8px #b5179e;
     }
 
     /* --- Messages --- */
@@ -152,44 +174,38 @@
       font-size: 15px;
     }
     .message.success {
-      background-color: rgba(209, 250, 229, 0.9);
-      color: #065f46;
-      border: 1px solid #a7f3d0;
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #9ef4c2;
+      border: 1px solid rgba(34, 197, 94, 0.4);
     }
     .message.error {
-      background-color: rgba(254, 226, 226, 0.9);
-      color: #7f1d1d;
-      border: 1px solid #fecaca;
+      background-color: rgba(255, 0, 60, 0.15);
+      color: #f8b4c0;
+      border: 1px solid rgba(255, 0, 60, 0.4);
     }
 
-    /* --- Loading spinner --- */
+    /* --- Spinner --- */
     .spinner {
       display: none;
-      border: 4px solid rgba(255,255,255,0.2);
-      border-top: 4px solid #c77dff;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top: 4px solid #9d4edd;
       border-radius: 50%;
       width: 36px;
       height: 36px;
       animation: spin 1s linear infinite;
       margin: 20px auto;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
-    }
 
-    /* --- Logo --- */
-    .pliops-logo {
-      width: 90px;
-      display: block;
-      margin: 10px auto 0;
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <div class="wizard-container">
     <div class="wizard-header">
-      <img src="static/img/pliops-logo.png" alt="Pliops Logo" class="pliops-logo">
+      <img src="{{ url_for('static', filename='img/pliops-hex-logo.png') }}" alt="Pliops Logo" class="pliops-logo">
       <div>Pliops Offboarding Wizard</div>
     </div>
 
